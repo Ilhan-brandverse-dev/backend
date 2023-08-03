@@ -3,6 +3,7 @@ const Driver = mongoose.model('Driver');
 const Users = mongoose.model('Users');
 const Product = mongoose.model('Product');
 const ProductStatus = require('../utils/constants');
+const CustomerModel = require('../model/Customer')
 const client = require("twilio")(
     "ACd96bb22962c305384779e1296e01c6ce",
     "333ae246ab0abeb2220d288d523e02be"
@@ -98,6 +99,10 @@ const addProduct = async (req, res) => {
             return res.status(400).send({ status: 0, message: "Dropoff Location and address field can't be empty." });
         }
         else {
+            const customer = await CustomerModel.findById(customerId)
+            if (!customer) {
+                return res.status(400).send({ status: 0, message: "Customer not found." });
+            }
             const product = new Product({
                 createdBy: req.user._id, customerId, name, qrCode, address, price, weight, "location.type": "Point", "location.coordinates": [parseFloat(long), parseFloat(lat)],
             })
@@ -126,7 +131,7 @@ const dispatchProduct = async (req, res) => {
         if (!product) {
             return res.status(400).send({ status: 0, message: "No Product found." })
         }
-        const updatedProduct = await product.updateOne({ assignTo:riderId, trackingId, status: ProductStatus.Dispatched })
+        const updatedProduct = await product.updateOne({ assignTo: riderId, trackingId, status: ProductStatus.Dispatched })
         if (updatedProduct) {
             return res.status(200).send({ status: 1, message: "Product Updated Successfully" })
         } else {
