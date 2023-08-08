@@ -14,6 +14,10 @@ const CustomerSchema = mongoose.Schema({
         type: String,
         required: [true, "Customer password is mandatory"]
     },
+    name: {
+        type: String,
+        required: [true, "User name is mandatory"]
+    }
 }, {
     timestamps: true
 })

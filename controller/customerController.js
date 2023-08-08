@@ -36,7 +36,7 @@ const getSingleCustomer = async (req, res) => {
 const addCustomer = async (req, res) => {
     try {
         console.log("in add customer")
-        const { phoneNumber, email, password } = req.body;
+        const { phoneNumber, email, password, name } = req.body;
         const customerAvailable = await CustomerModel.findOne({ phoneNumber })
         if (customerAvailable) {
             res.status(400).json({ message: "Customer with this phone number already exists" })
@@ -44,12 +44,13 @@ const addCustomer = async (req, res) => {
             // Hash password
             const hashedPassword = await bcrypt.hash(password, 10)
             console.log(hashedPassword)
-            const customer = await CustomerModel.create({ phoneNumber, email, password: hashedPassword })
+            const customer = await CustomerModel.create({ phoneNumber, email, name ,password: hashedPassword })
             res.status(200).json({
                 message: "Customer added successfully", customer: {
                     id: customer._id,
                     email: customer.email,
-                    phoneNumber: customer.phoneNumber
+                    phoneNumber: customer.phoneNumber,
+                    name: customer.name
                 }
             })
         }
