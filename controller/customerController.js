@@ -30,7 +30,6 @@ const getSingleCustomer = async (req, res) => {
     } catch (e) {
         res.status(400).json({ message: e.message })
     }
-
 }
 
 const addCustomer = async (req, res) => {

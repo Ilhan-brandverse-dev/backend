@@ -56,6 +56,14 @@ const productSchema = new mongoose.Schema({
     weight: {
         type:String,
         required:[true, "Weight is required"]
+    },
+    recipientName: {
+        type: String,
+        required: [true, "Recipient name is required"]
+    },
+    recipientNumber: {
+        type: String,
+        required: [true, "Recipient number is required"]
     }
 }, {
     timestamps: true

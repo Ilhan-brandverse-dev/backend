@@ -89,7 +89,7 @@ const deleteDriver = async (req, res) => {
 
 const addProduct = async (req, res) => {
     try {
-        const { name, customerId, qrCode, lat, long, address, price, weight } = req.body
+        const { name, customerId, qrCode, lat, long, address, price, weight, recipientName, recipientNumber } = req.body
         if (!name || !price || !weight) {
             return res.status(400).send({ status: 0, message: "Product details can't be empty." });
         } else if (!customerId) {
@@ -98,13 +98,16 @@ const addProduct = async (req, res) => {
         else if (!lat || !long || !address) {
             return res.status(400).send({ status: 0, message: "Dropoff Location and address field can't be empty." });
         }
+        else if (!recipientName || !recipientNumber) {
+            return res.status(400).send({ status: 0, message: "Recipient detail can't be empty." });
+        }
         else {
             const customer = await CustomerModel.findById(customerId)
             if (!customer) {
                 return res.status(400).send({ status: 0, message: "Customer not found." });
             }
             const product = new Product({
-                createdBy: req.user._id, customerId, name, qrCode, address, price, weight, "location.type": "Point", "location.coordinates": [parseFloat(long), parseFloat(lat)],
+                createdBy: req.user._id, customerId, name, qrCode, address, price, weight, recipientName, recipientNumber, "location.type": "Point", "location.coordinates": [parseFloat(long), parseFloat(lat)],
             })
             await product.save()
             if (product) {
