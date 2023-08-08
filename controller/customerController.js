@@ -15,13 +15,13 @@ const getAllCustomers = async (req, res) => {
 
 const getSingleCustomer = async (req, res) => {
     try {
-        const phoneNumber = req.query.customer_number;
-        console.log(`+${phoneNumber.trim()}`)
+        const {phoneNumber} = req.body;
+        console.log(phoneNumber.trim())
         if(!phoneNumber){
             res.status(404).json({message: "Phone number is required"});
         }
 
-        const customer = await CustomerModel.findOne({ phoneNumber:`+${phoneNumber.trim()}` })
+        const customer = await CustomerModel.findOne({ phoneNumber:phoneNumber.trim() })
         if (customer) {
             res.status(200).json({ customer })
         } else {
