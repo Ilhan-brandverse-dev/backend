@@ -21,7 +21,7 @@ const getSingleCustomer = async (req, res) => {
             res.status(404).json({message: "Phone number is required"});
         }
 
-        const customer = await CustomerModel.findOne({ phoneNumber:phoneNumber.trim() })
+        const customer = await CustomerModel.findOne({phoneNumber})
         if (customer) {
             res.status(200).json({ customer })
         } else {

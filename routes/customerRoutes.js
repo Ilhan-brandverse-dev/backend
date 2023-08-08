@@ -4,7 +4,7 @@ const {getAllCustomers, getSingleCustomer, addCustomer,loginCustomer,getCustomer
 const validateCustomerToken = require('../middleware/validateCustomerToken')
 
 router.route("/all").get(getAllCustomers)
-router.route('/get').get(getSingleCustomer)
+router.route('/get').post(getSingleCustomer)
 
 router.route("/add").post(addCustomer)
 router.route("/login").post(loginCustomer)
