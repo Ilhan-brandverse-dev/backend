@@ -169,13 +169,21 @@ const deliverProduct = async (req, res) => {
 
 const allProducts = async (req, res) => {
     try {
-        const products = await Product.find()
+        const products = await Product.find().populate({
+            path: 'customerId',
+            select: 'phoneNumber'
+        })
+        const productsWithUserPhone = products.map(product => ({
+            ...product.toObject(), // Convert product to plain JavaScript object
+            userPhone: product.customerId ? product.customerId.phoneNumber : null
+        }));
         if (products?.length > 0) {
-            return res.status(200).send({ status: 1, products });
+            return res.status(200).send({ status: 1, productsWithUserPhone });
         } else {
             return res.status(400).send({ status: 0, message: "No Products Found" });
         }
     } catch (error) {
+        console.log(error)
         return res.status(500).send({ status: 0, message: "Something went wrong" });
     }
 }
