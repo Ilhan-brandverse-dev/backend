@@ -4,6 +4,7 @@ const Users = mongoose.model('Users');
 const Product = mongoose.model('Product');
 const ProductStatus = require('../utils/constants');
 const CustomerModel = require('../model/Customer')
+const bcrypt = require('bcrypt')
 const client = require("twilio")(
     "ACd96bb22962c305384779e1296e01c6ce",
     "333ae246ab0abeb2220d288d523e02be"
@@ -43,8 +44,12 @@ const addDriver = async (req, res) => {
             return res.status(400).send({ status: 0, message: "Location field can't be empty." });
         }
         else {
+            const stringPhone = phone.toString()
+            const pass = stringPhone.substring(stringPhone.length - 4)
+            console.log("Rider pass", pass)
+            const hashedPassword = await bcrypt.hash(pass, 10)
             const driver = new Driver({
-                name, email, age, cnicNo, phone, "location.type": "Point", "location.coordinates": [parseFloat(long), parseFloat(lat)],
+                name, email, age, cnicNo, phone, password: hashedPassword, "location.type": "Point", "location.coordinates": [parseFloat(long), parseFloat(lat)],
             })
             await driver.save()
             // let response = await sendTextMessage(email, ramdomPassword);
@@ -55,6 +60,31 @@ const addDriver = async (req, res) => {
     } catch (error) {
         console.log(error.message)
         return res.status(500).send({ status: 0, message: "Something went wrong" });
+    }
+}
+
+const loginDriver = async (req, res) => {
+    try {
+        const { email, password } = req.body;
+        if (!email || !password) {
+            throw new Error("Email and password is mandatory")
+        }
+
+        const rider = await Driver.findOne({ email })
+        if (!rider) {
+            res.status(400).send({ message: "Invalid Email." })
+        } else {
+            const isPassValid = await bcrypt.compare(password, rider.password)
+            if (!isPassValid) {
+                res.status(400).send({ message: "Invalid Password." })
+            } else {
+                res.status(200).send({ driver: rider })
+            }
+        }
+    }
+    catch (e) {
+        console.log(e)
+        res.status(500).send({ message: e.message })
     }
 }
 
@@ -177,10 +207,10 @@ const allProducts = async (req, res) => {
             ...product.toObject(), // Convert product to plain JavaScript object
             userPhone: product.customerId ? product.customerId.phoneNumber : null
         }));
-        const productsParsed =  productsWithUserPhone.map(product => {
+        const productsParsed = productsWithUserPhone.map(product => {
             const { customerId, ...productData } = product;
-            return { ...productData, customerId: customerId?._id};
-          });
+            return { ...productData, customerId: customerId?._id };
+        });
         if (products?.length > 0) {
             return res.status(200).send({ status: 1, productsParsed });
         } else {
@@ -190,6 +220,17 @@ const allProducts = async (req, res) => {
         console.log(error)
         return res.status(500).send({ status: 0, message: "Something went wrong" });
     }
+}
+
+const allPendingProducts = async (req, res) => {
+    try {
+        const products = await Product.find({ status: ProductStatus.Pending }).populate({ path: 'customerId' })
+        res.status(200).send({ products })
+    } catch (e) {
+        res.status(500).send({ message: e.message })
+    }
+
+
 }
 
 const dashboard = async (req, res) => {
@@ -203,4 +244,4 @@ const dashboard = async (req, res) => {
     }
 }
 
-module.exports = { addDriver, allDrivers, deleteDriver, addProduct, allProducts, dashboard, dispatchProduct, deliverProduct }
+module.exports = { addDriver, allDrivers, deleteDriver, addProduct, allProducts, dashboard, dispatchProduct, deliverProduct, loginDriver, allPendingProducts }

@@ -83,7 +83,7 @@ const loginCustomer = async (req, res) => {
             res.status(200).json({token:accessToken, customer: customerAvailable})
 
         }else{
-            res.status(401).json({ message: "Customer doesn't exist" })
+            res.status(400).json({ message: "Customer doesn't exist"})
         }
 
     } catch (e) {
@@ -94,6 +94,7 @@ const loginCustomer = async (req, res) => {
 const getCustomerProducts = async(req,res)=>{
     try{
         const customerId = req.user.id;
+        console.log("in customer products")
         console.log(customerId)
         const allProducts = await Product.find({customerId})
         return res.status(200).json({products:allProducts})

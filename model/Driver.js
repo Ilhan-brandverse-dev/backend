@@ -7,7 +7,11 @@ const driverSchema = new mongoose.Schema(
         },
         email: {
             type: String,
-            required: false
+            required: [true, "Email is required"]
+        },
+        password: {
+            type: String,
+            required: [true, "Password is required"]
         },
         age: {
             type: Number,
