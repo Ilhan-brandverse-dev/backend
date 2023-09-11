@@ -152,19 +152,17 @@ const addProduct = async (req, res) => {
 
 const dispatchProduct = async (req, res) => {
     try {
-        const { productId, riderId, trackingId } = req.body;
+        const { productId, riderId } = req.body;
         if (!productId) {
             return res.status(400).send({ status: 0, message: "Please select a product to dispatch." })
         } else if (!riderId) {
             return res.status(400).send({ status: 0, message: "Please select a Rider to dispatch." })
-        } else if (!trackingId) {
-            return res.status(400).send({ status: 0, message: "Add a tracking id." })
         }
         const product = await Product.findById(productId);
         if (!product) {
             return res.status(400).send({ status: 0, message: "No Product found." })
         }
-        const updatedProduct = await product.updateOne({ assignTo: riderId, trackingId, status: ProductStatus.Dispatched })
+        const updatedProduct = await product.updateOne({ assignTo: riderId, status: ProductStatus.Dispatched })
         if (updatedProduct) {
             return res.status(200).send({ status: 1, message: "Product Updated Successfully" })
         } else {
@@ -173,6 +171,30 @@ const dispatchProduct = async (req, res) => {
     } catch (e) {
         console.log(e);
         return res.status(500).send({ status: 0, message: "Something went wrong" });
+    }
+}
+
+const addTrackingId = async (req, res) => {
+    try {
+        const { productId, trackingId } = req.body;
+        if (!productId || !trackingId) {
+            return res.status(400).send({ message: "Product ID and tracking ID is mandatory." })
+        } else {
+            const product = await Product.findById(productId);
+            if (!product) {
+                return res.status(400).send({ status: 0, message: "No Product found." })
+            }
+            const updatedProduct = await product.updateOne({ trackingId })
+            if (updatedProduct) {
+                return res.status(200).send({ status: 1, message: "Product Updated Successfully" })
+            } else {
+                return res.status(400).send({ status: 0, message: "Product not updated" })
+            }
+        }
+    }
+    catch (e) {
+        console.log(e);
+        res.status(500).send({ message: "Something went wrong" });
     }
 }
 
@@ -201,11 +223,11 @@ const allProducts = async (req, res) => {
     try {
         const products = await Product.find().populate({
             path: 'customerId',
-            select: 'phoneNumber'
         })
         const productsWithUserPhone = products.map(product => ({
             ...product.toObject(), // Convert product to plain JavaScript object
-            userPhone: product.customerId ? product.customerId.phoneNumber : null
+            userPhone: product.customerId ? product.customerId.phoneNumber : null,
+            customer: product.customerId
         }));
         const productsParsed = productsWithUserPhone.map(product => {
             const { customerId, ...productData } = product;
@@ -229,8 +251,26 @@ const allPendingProducts = async (req, res) => {
     } catch (e) {
         res.status(500).send({ message: e.message })
     }
+}
 
-
+const getRiderProducts = async (req,res) => {
+    const {riderId} = req.body;
+    console.log(riderId);
+    try {
+        const products = await Product.find({ status: ProductStatus.Dispatched,assignTo: riderId  }).populate({ path: 'customerId' })
+        const productsWithUserPhone = products.map(product => ({
+            ...product.toObject(), // Convert product to plain JavaScript object
+            userPhone: product.customerId ? product.customerId.phoneNumber : null,
+            customer: product.customerId
+        }));
+        const productsParsed = productsWithUserPhone.map(product => {
+            const { customerId, ...productData } = product;
+            return { ...productData, customerId: customerId?._id };
+        });
+        res.status(200).send({ products:productsParsed })
+    } catch (e) {
+        res.status(500).send({ message: e.message })
+    }
 }
 
 const dashboard = async (req, res) => {
@@ -244,4 +284,4 @@ const dashboard = async (req, res) => {
     }
 }
 
-module.exports = { addDriver, allDrivers, deleteDriver, addProduct, allProducts, dashboard, dispatchProduct, deliverProduct, loginDriver, allPendingProducts }
+module.exports = { addDriver, allDrivers, deleteDriver, addProduct, allProducts, dashboard, dispatchProduct, deliverProduct, loginDriver, allPendingProducts, addTrackingId, getRiderProducts }

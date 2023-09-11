@@ -8,9 +8,10 @@ const validateCustomerToken = (req, res, next) => {
         jwt.verify(token, process.env.CUSTOMER_SECRET_KEY, (err, decoded) => {
             if (err) {
                 res.status(401).json({ message: "Unauthorized" })
-            }
+            }else{
             req.user = decoded.customer;
             next();
+            }
         })
     } else {
         res.status(401).json({ message: "Unauthorized user" })
