@@ -15,13 +15,13 @@ const getAllCustomers = async (req, res) => {
 
 const getSingleCustomer = async (req, res) => {
     try {
-        const {phoneNumber} = req.body;
+        const { phoneNumber } = req.body;
         console.log(phoneNumber.trim())
-        if(!phoneNumber){
-            res.status(404).json({message: "Phone number is required"});
+        if (!phoneNumber) {
+            res.status(404).json({ message: "Phone number is required" });
         }
 
-        const customer = await CustomerModel.findOne({phoneNumber})
+        const customer = await CustomerModel.findOne({ phoneNumber })
         if (customer) {
             res.status(200).json({ customer })
         } else {
@@ -43,7 +43,7 @@ const addCustomer = async (req, res) => {
             // Hash password
             const hashedPassword = await bcrypt.hash(password, 10)
             console.log(hashedPassword)
-            const customer = await CustomerModel.create({ phoneNumber, email, name ,password: hashedPassword })
+            const customer = await CustomerModel.create({ phoneNumber, email, name, password: hashedPassword })
             res.status(200).json({
                 message: "Customer added successfully", customer: {
                     id: customer._id,
@@ -66,24 +66,24 @@ const loginCustomer = async (req, res) => {
             throw new Error("All fields are mandatory")
         }
         console.log("in func");
-        const customerAvailable = await CustomerModel.findOne({phoneNumber:"+923168958164"})
+        const customerAvailable = await CustomerModel.findOne({ phoneNumber: phoneNumber })
         console.log(customerAvailable)
         const isPassValid = await bcrypt.compare(password, customerAvailable.password)
-        if(customerAvailable && isPassValid){
+        if (customerAvailable && isPassValid) {
             const accessToken = jwt.sign({
-                customer:{
+                customer: {
                     id: customerAvailable._id,
                     phoneNumber: customerAvailable.phoneNumber,
                     email: customerAvailable.email
-                    
+
                 }
             }, process.env.CUSTOMER_SECRET_KEY,
-            {expiresIn: "1h"}
+                { expiresIn: "1h" }
             )
-            res.status(200).json({token:accessToken, customer: customerAvailable})
+            res.status(200).json({ token: accessToken, customer: customerAvailable })
 
-        }else{
-            res.status(400).json({ message: "Customer doesn't exist"})
+        } else {
+            res.status(400).json({ message: "Customer doesn't exist" })
         }
 
     } catch (e) {
@@ -91,17 +91,17 @@ const loginCustomer = async (req, res) => {
     }
 }
 
-const getCustomerProducts = async(req,res)=>{
-    try{
+const getCustomerProducts = async (req, res) => {
+    try {
         const customerId = req.user.id;
         console.log("in customer products")
         console.log(customerId)
-        const allProducts = await Product.find({customerId})
-        return res.status(200).json({products:allProducts})
+        const allProducts = await Product.find({ customerId })
+        return res.status(200).json({ products: allProducts })
     }
-    catch(e){
+    catch (e) {
         console.log(e)
-        return res.status(500).json({message:"Something went wrong"});
+        return res.status(500).json({ message: "Something went wrong" });
     }
 }
 
